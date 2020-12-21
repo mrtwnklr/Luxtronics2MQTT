@@ -1,3 +1,6 @@
+[General]
+print_values = boolean(default=true)
+
 [Heatpump]
 # Heatpump Luxtronik 2.0 IP
 host = string(default='10.200.1.200')

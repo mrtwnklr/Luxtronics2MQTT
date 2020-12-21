@@ -34,6 +34,10 @@ if config.validate(validator) != True:
     print( 'Config file validation failed!')
     sys.exit(1)
 
+def print_value(*argv):
+	if config['General']['print_values']:
+		print(*argv)
+
 ########################################## Values #############################
 # Source https://service.knx-user-forum.de/?comm=download&id=19000682
 aValueDefinition=[{'UNKNOWN':None},
@@ -571,10 +575,10 @@ for i in range(iDataFields):
     aData.append(struct.unpack( '!i', oSocket.recv(4))[0])
 oSocket.close()
 # print("Calculated")
-print("                    State : ", iStat)
-print("Number of fields received : ",iDataFields)
+print_value("                    State : ", iStat)
+print_value("Number of fields received : ",iDataFields)
 # print(aData)
-print("\n")
+print_value("\n")
 
 # Association Fields to DataType, info: Range range(236,246,1) means Field 236-245
 # Float 
@@ -612,11 +616,11 @@ for iIndex in range(10,iDataFields):
 	oValue=""
 	sDetails=""
 	if iIndex in rRangeDateDiffData:
-		print(getValueDefByIndex(iIndex)['ValueName'],"(",getValueDefByIndex(iIndex)['Description'],"=", (str(datetime.timedelta(seconds=int(aData[iIndex])))))
+		print_value(getValueDefByIndex(iIndex)['ValueName'],"(",getValueDefByIndex(iIndex)['Description'],"=", (str(datetime.timedelta(seconds=int(aData[iIndex])))))
 		oValue=int(aData[iIndex])
 		sDetails=str(datetime.timedelta(seconds=int(aData[iIndex])))
 	if iIndex in rRangeIntData:	
-		print(getValueDefByIndex(iIndex)['ValueName'],"(",getValueDefByIndex(iIndex)['Description'],") =", (str(int(aData[iIndex]))))
+		print_value(getValueDefByIndex(iIndex)['ValueName'],"(",getValueDefByIndex(iIndex)['Description'],") =", (str(int(aData[iIndex]))))
 		oValue=int(aData[iIndex])
 		# Any detailed information
 		if iIndex in aFieldsHeatPumpType:
@@ -638,19 +642,19 @@ for iIndex in range(10,iDataFields):
 		if iIndex in aFieldsErrorCodeDescription:
 			sDetails=getErrorCodeDescription(oValue)		
 	if iIndex in rRangeIPAddressData:	
-		print(getValueDefByIndex(iIndex)['ValueName'],"(",getValueDefByIndex(iIndex)['Description'],") =", (str(int2ip(int(aData[iIndex]) & 0xffffffff))))
+		print_value(getValueDefByIndex(iIndex)['ValueName'],"(",getValueDefByIndex(iIndex)['Description'],") =", (str(int2ip(int(aData[iIndex]) & 0xffffffff))))
 		oValue=int(aData[iIndex]) & 0xffffffff
 		sDetails=str(int2ip(int(aData[iIndex]) & 0xffffffff))
 	if iIndex in rRangeDateAbsolute:	
-		print(getValueDefByIndex(iIndex)['ValueName'],"(",getValueDefByIndex(iIndex)['Description'],") =", (str((datetime.datetime.fromtimestamp(int(aData[iIndex]))).strftime("%Y-%m-%d %H:%M:%S"))))
+		print_value(getValueDefByIndex(iIndex)['ValueName'],"(",getValueDefByIndex(iIndex)['Description'],") =", (str((datetime.datetime.fromtimestamp(int(aData[iIndex]))).strftime("%Y-%m-%d %H:%M:%S"))))
 		oValue=int(aData[iIndex])
 		sDetails=str((datetime.datetime.fromtimestamp(int(aData[iIndex]))).strftime("%Y-%m-%d %H:%M:%S"))
 	if iIndex in rRangeBoolData:
-		print(getValueDefByIndex(iIndex)['ValueName'],"(",getValueDefByIndex(iIndex)['Description'],") =", getBoolString(int(aData[iIndex])))
+		print_value(getValueDefByIndex(iIndex)['ValueName'],"(",getValueDefByIndex(iIndex)['Description'],") =", getBoolString(int(aData[iIndex])))
 		oValue=int(aData[iIndex])
 		sDetails=getBoolString(int(aData[iIndex]))
 	if iIndex in rRangeFloatData:
-		print(getValueDefByIndex(iIndex)['ValueName'],"(",getValueDefByIndex(iIndex)['Description'],") =", (str(float(aData[iIndex]/10))))
+		print_value(getValueDefByIndex(iIndex)['ValueName'],"(",getValueDefByIndex(iIndex)['Description'],") =", (str(float(aData[iIndex]/10))))
 		oValue=float(aData[iIndex]/10)
 	if config['MQTT']['message_type'] != 'all_values_in_one_message':
 		oPayload=json.dumps({"Field":iIndex,"Name":getValueDefByIndex(iIndex)['ValueName'],"Value":oValue,"Description":getValueDefByIndex(iIndex)['Description'],"Details":sDetails})
@@ -671,25 +675,25 @@ if config['MQTT']['message_type'] == 'all_values_in_one_message':
 publish.multiple(oPayloads, hostname=config['MQTT']['host'], port=config['MQTT']['port'], client_id=config['MQTT']['client_id'], auth={'username':config['MQTT']['user'], 'password':config['MQTT']['password']})
 ###################### Print some  values to Screen ###########################
 # Heatpump Type	
-print(getValueDefByIndex(78)['ValueName'],getValueDefByIndex(78)['Description'],"=", getHeatPumpType(int(aData[78])))
+print_value(getValueDefByIndex(78)['ValueName'],getValueDefByIndex(78)['Description'],"=", getHeatPumpType(int(aData[78])))
 # Bilanzstufe
-print(getValueDefByIndex(79)['ValueName'],getValueDefByIndex(79)['Description'],"=", getBilanzStufe(int(aData[79])))
+print_value(getValueDefByIndex(79)['ValueName'],getValueDefByIndex(79)['Description'],"=", getBilanzStufe(int(aData[79])))
 # Betriebszustand
-print(getValueDefByIndex(80)['ValueName'],getValueDefByIndex(80)['Description'],"=", getBetriebsZustand(int(aData[80])))
+print_value(getValueDefByIndex(80)['ValueName'],getValueDefByIndex(80)['Description'],"=", getBetriebsZustand(int(aData[80])))
 # Grundabschaltung
-print(getValueDefByIndex(106)['ValueName'],getValueDefByIndex(106)['Description'],"=", getGrundAbschaltung(int(aData[117])))
+print_value(getValueDefByIndex(106)['ValueName'],getValueDefByIndex(106)['Description'],"=", getGrundAbschaltung(int(aData[117])))
 # HauptMenuStatus_Zeile1
-print(getValueDefByIndex(117)['ValueName'],getValueDefByIndex(117)['Description'],"=", getHauptMenuStatus_Zeile1(int(aData[117])))
+print_value(getValueDefByIndex(117)['ValueName'],getValueDefByIndex(117)['Description'],"=", getHauptMenuStatus_Zeile1(int(aData[117])))
 # HauptMenuStatus_Zeile2
-print(getValueDefByIndex(118)['ValueName'],getValueDefByIndex(118)['Description'],"=", getHauptMenuStatus_Zeile2(int(aData[118])))
+print_value(getValueDefByIndex(118)['ValueName'],getValueDefByIndex(118)['Description'],"=", getHauptMenuStatus_Zeile2(int(aData[118])))
 # HauptMenuStatus_Zeile3
-print(aValueDefinition[119][list(aValueDefinition[119].keys())[0]],list(aValueDefinition[119].keys())[0],"=", getHauptMenuStatus_Zeile3(int(aData[119])))
+print_value(aValueDefinition[119][list(aValueDefinition[119].keys())[0]],list(aValueDefinition[119].keys())[0],"=", getHauptMenuStatus_Zeile3(int(aData[119])))
 # Letzer Fehler
-print(getValueDefByIndex(100)['ValueName'],getValueDefByIndex(100)['Description'],"=", str(int(aData[100])))
-print(getValueDefByIndex(100)['ValueName'],getValueDefByIndex(100)['Description'],"=", getErrorCodeDescription(int(aData[100])))
-print(getValueDefByIndex(95)['ValueName'],getValueDefByIndex(95)['Description'],"=", str(datetime.datetime.fromtimestamp(int(aData[95]))))
+print_value(getValueDefByIndex(100)['ValueName'],getValueDefByIndex(100)['Description'],"=", str(int(aData[100])))
+print_value(getValueDefByIndex(100)['ValueName'],getValueDefByIndex(100)['Description'],"=", getErrorCodeDescription(int(aData[100])))
+print_value(getValueDefByIndex(95)['ValueName'],getValueDefByIndex(95)['Description'],"=", str(datetime.datetime.fromtimestamp(int(aData[95]))))
 # HeizModus
-print(getValueDefByIndex(125)['ValueName'],getValueDefByIndex(125)['Description'],"=", getHeizModus(int(aData[125])))
+print_value(getValueDefByIndex(125)['ValueName'],getValueDefByIndex(125)['Description'],"=", getHeizModus(int(aData[125])))
 
 
 
